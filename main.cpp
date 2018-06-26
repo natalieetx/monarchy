@@ -1,60 +1,87 @@
 #include<iostream>
 #include<vector>
 #include<algorithm>
+#include<queue>
 using namespace std;
 
 struct node{
     
-    //string parent, name;
-    int age, parentid, id;
+    string name;
+    bool isalive;
+    int age, id, parentid;
     
 };
-
 bool operator<(const node& x, const node& y){
     
     return x.age<y.age;
     
-};
-//vector<string, vector<node> > g_tree(int N);
+}
+
+vector<vector<node> > g_tree;
+int numofrelatives;
+
+//The data about queen's relatives shall be in the following format: relative's name, id, parent's id, age, whether they're alive
+void addrelatives();
+//When all alive, the oldest sibiling will be the successor. If not, the oldest of the sibilings that is alive.
+//If all are dead, then we look for oldest alive child of the oldest sibiling; if all are dead,
+//then for the oldest alive child of the second oldest sibiling... etc.
+int successortothethrone();
 
 
 int main(){
     
-    //node queen;
-    //g_tree[0] - queen
-    //queen.id - 0
     
-    cout<<"Type in the number of queen's relatives to input:"<<endl;
-    int n;
-    cin>>n;
-    vector<int, vector<node> > g_tree(n);
+    cin>>numofrelatives;
+    g_tree.assign(numofrelatives+1, vector<node> (0));
     
-    cout<<"Type in the data about queen's relatives in the following format:"<<endl<<"parent's id"<<endl<<"id"<<endl<<"age"<<endl;
-    //let's assume that no two sibilings are the same age
-    for(int i=0; i<n; i++){
-        
-        node x;
-        cin>>x.parentid>>x.id>>x.age;
-        g_tree[x.parentid].push_back(x);
-        
-    }
-    int current=0;
-    
-    cout<<"Type in 0 to end the programme, 1 to find the next successor:"<<endl;
-    int y;
-    cin>>y;
-    while(y){
-        
-        sort(g_tree[current], g_tree[current]+g_tree[current].size);
-        cout<<"The next successor is the relative with id "<<g_tree[current][g_tree[current].size-1].id<<endl;
-        current=g_tree[current][g_tree[current].size-1].id;
-        
-        cout<<"Type in 0 to end the programme, 1 to find the next successor:"<<endl;
-        cin>>y;
-        
-    }
-    
-    return 0;
+    addrelatives();
+    cout<<successortothethrone();
+
 
     
 }
+
+void addrelatives(){
+    
+    for(int i=0; i<numofrelatives; i++){
+        
+        node x;
+        cin>>x.name>>x.id>>x.parentid>>x.age>>x.isalive;
+        g_tree[x.parentid].push_back(x);
+        
+    }
+    
+}
+
+int successortothethrone(){
+    
+    sort(g_tree[0].begin(), g_tree[0].end());
+    
+    int currentparent=0;
+    int currentsubstr=(int)g_tree[currentparent].size()-1;
+    int successor=g_tree[currentparent][currentsubstr].id;
+    
+    queue<int> oldest;
+    oldest.push(successor);
+    
+    while(!g_tree[currentparent][currentsubstr].isalive){
+        
+        successor=g_tree[currentparent][currentsubstr].id;
+        oldest.push(successor);
+        
+        currentsubstr--;
+        
+        if(currentsubstr<0){
+            
+            currentparent=oldest.front();
+            oldest.pop();
+            currentsubstr=(int)g_tree[currentparent].size()-1;
+            
+        }
+        
+    }
+    successor=g_tree[currentparent][currentsubstr].id;
+    
+    return successor;
+}
+
